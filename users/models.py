@@ -40,8 +40,8 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, name, surname, password, **extra)
 
 
-# Вариант 2 и 3
-class Skill(models.Model):
+# Вариант 2
+class UserSkill(models.Model):
     name = models.CharField(max_length=124,
                             unique=True,
                             verbose_name='Название навыка')
@@ -78,11 +78,19 @@ class User(AbstractBaseUser, PermissionsMixin):
                                     verbose_name='Активный пользователь')
     is_staff = models.BooleanField(default=False,
                                    verbose_name='Администратор')
-    # 2 и 3 варианты
-    skills = models.ManyToManyField(Skill,
+    # 2 вариант
+    skills = models.ManyToManyField(UserSkill,
                                     related_name='users',
                                     blank=True,
                                     verbose_name='Навыки')
+    # 1 вариант
+    favorites = models.ManyToManyField(
+        'projects.Project',
+        related_name='interested_users',
+        blank=True,
+        verbose_name='Избранные проекты'
+    )
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -140,6 +148,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f'{self.name} {self.surname}'
-
-
-
