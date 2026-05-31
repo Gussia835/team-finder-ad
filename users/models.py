@@ -1,5 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import (BaseUserManager,
+                                        AbstractBaseUser,
+                                        PermissionsMixin)
 from PIL import Image, ImageDraw, ImageFont
 import random
 from django.core.files.base import ContentFile

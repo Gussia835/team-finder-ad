@@ -3,14 +3,14 @@ from users.models import User, UserSkill
 from projects.models import Project, ProjectSkill
 
 
-class SkillSerializer(serializers.ModelSerializer):
+class UserSkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserSkill
         fields = ['id', 'name']
 
 
 class UserSerializer(serializers.ModelSerializer):
-    skills = SkillSerializer(many=True, read_only=True)
+    skills = UserSkillSerializer(many=True, read_only=True)
 
     class Meta:
         model = User
@@ -54,3 +54,16 @@ class ProjectSerializer(serializers.ModelSerializer):
                             'owner',
                             'participants',
                             'created_at']
+
+    def get_owner(self, obj):
+        return {'name': obj.owner.name, 'surname': obj.owner.surname}
+
+
+class AddSkillSerializer(serializers.Serializer):
+    skill_id = serializers.IntegerField(required=False)
+    name = serializers.CharField(required=False, max_length=124)
+
+    def validate(self, data):
+        if not data.get('skill_id') and not data.get('name'):
+            raise serializers.ValidationError('Укажите skill_id или name')
+        return data
