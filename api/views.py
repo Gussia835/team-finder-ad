@@ -51,7 +51,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated])
     def skills_autocomplete(self, request):
         q = request.query_params.get('q', '')
-        skills = ProjectSkill.objects.filter(name__istartswith=q).order_by('name')[:10]
+        skills = ProjectSkill.objects.filter(
+                name__istartswith=q
+        ).order_by('name')[:10]
         return Response(ProjectSkillSerializer(skills, many=True).data)
 
     # 3 вариант
@@ -119,7 +121,9 @@ class UserViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated])
     def skills_autocomplete(self, request):
         q = request.query_params.get('q', '')
-        skills = UserSkill.objects.filter(name__istartswith=q).order_by('name')[:10]
+        skills = ProjectSkill.objects.filter(
+                name__istartswith=q
+        ).order_by('name')[:10]
         return Response(UserSkillSerializer(skills, many=True).data)
 
     @action(detail=True,

@@ -41,7 +41,8 @@ ROOT_URLCONF = "team_finder.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / f"templates_var{config('TASK_VERSION', default='1')}"],
+        "DIRS": [BASE_DIR / f"templates_var{config('TASK_VERSION',
+                                                   default='1')}"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -76,22 +77,24 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = []
 if not DEBUG:
-    AUTH_PASSWORD_VALIDATORS.extend(
-        [
-            {
-                "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-            },
-            {
-                "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-            },
-            {
-                "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-            },
-            {
-                "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-            },
-        ]
-    )
+    AUTH_PASSWORD_VALIDATORS.extend([
+        {
+            "NAME": "django.contrib.auth.password_validation."
+                    "UserAttributeSimilarityValidator",
+        },
+        {
+            "NAME": "django.contrib.auth.password_validation."
+                    "MinimumLengthValidator",
+        },
+        {
+            "NAME": "django.contrib.auth.password_validation."
+                    "CommonPasswordValidator",
+        },
+        {
+            "NAME": "django.contrib.auth.password_validation."
+                    "NumericPasswordValidator",
+        },
+    ])
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -141,7 +144,9 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.BrowsableAPIRenderer',
     ],
 
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'DEFAULT_PAGINATION_CLASS': (
+        'rest_framework.pagination.PageNumberPagination'
+    ),
     'PAGE_SIZE': 12,
 
     'DEFAULT_FILTER_BACKENDS': [
