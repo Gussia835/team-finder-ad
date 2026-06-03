@@ -3,6 +3,7 @@ import json
 from django.test import Client, TestCase
 from django.urls import reverse
 from projects.models import Project, ProjectSkill
+from team_finder.constants import ProjectStatus
 from users.models import User
 
 
@@ -25,7 +26,7 @@ class ProjectViewsTests(TestCase):
             name='Test Project',
             description='Description',
             owner=self.owner,
-            status='open',
+            status=ProjectStatus.OPEN,
         )
         self.project.participants.add(self.owner)
 
@@ -58,7 +59,7 @@ class ProjectViewsTests(TestCase):
         response = self.client.post(url)
         self.assertEqual(response.status_code, 200)
         self.project.refresh_from_db()
-        self.assertEqual(self.project.status, 'closed')
+        self.assertEqual(self.project.status, ProjectStatus.CLOSED)
 
     def test_toggle_participate(self):
         self.client.login(username='other@example.com', password='testpass123')
@@ -74,7 +75,7 @@ class ProjectViewsTests(TestCase):
         )
 
     def test_closed_project_not_on_list(self):
-        self.project.status = 'closed'
+        self.project.status = ProjectStatus.CLOSED
         self.project.save()
         response = self.client.get(reverse('projects:list'))
         self.assertNotContains(response, 'Test Project')

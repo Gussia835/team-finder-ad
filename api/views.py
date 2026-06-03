@@ -1,24 +1,24 @@
-from django.db.models import Q
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.serializers import (
-    ProjectSerializer,
-    UserSerializer,
-)
+from api.serializers import ProjectSerializer, UserSerializer
 from projects.models import Project, ProjectSkill
-from users.models import User, UserSkill
+from projects.services import open_projects_queryset
+from team_finder.constants import (
+    JSON_KEY_FAVORITED,
+    JSON_KEY_STATUS,
+    JSON_STATUS_OK,
+)
 from team_finder.utils.mixins import SkillManagementMixin
+from users.models import User, UserSkill
 
 
 class ProjectViewSet(SkillManagementMixin, viewsets.ModelViewSet):
     skill_model = ProjectSkill
-    queryset = Project.objects.filter(
-        Q(status='open') | Q(status='Open')
-    ).select_related('owner').prefetch_related('participants', 'skills')
-
+    skill_owner_field = 'owner'
+    queryset = open_projects_queryset().prefetch_related('participants', 'skills')
     serializer_class = ProjectSerializer
     ordering_fields = ['created_at', 'name']
     search_fields = ['name', 'description']
@@ -27,9 +27,8 @@ class ProjectViewSet(SkillManagementMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
-    @action(detail=True, methods=['post'],
-            permission_classes=[IsAuthenticated])
-    def toggle_favorite(self, request, pk):
+    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated])
+    def toggleFavorite(self, request, pk):
         user = request.user
         project = self.get_object()
         favorited = False
@@ -40,15 +39,20 @@ class ProjectViewSet(SkillManagementMixin, viewsets.ModelViewSet):
             user.favorites.add(project)
             favorited = True
 
-        return Response({'status': 'ok',
-                         'favorited': favorited})
+        return Response({
+            JSON_KEY_STATUS: JSON_STATUS_OK,
+            JSON_KEY_FAVORITED: favorited,
+        })
 
 
-class UserViewSet(SkillManagementMixin, mixins.RetrieveModelMixin,
-                  mixins.ListModelMixin,
-                  viewsets.GenericViewSet):
+class UserViewSet(
+    SkillManagementMixin,
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet,
+):
     skill_model = UserSkill
-    queryset = User.objects.all().select_related(
-    ).prefetch_related('skills', 'owned_projects')
+    skill_owner_field = 'self'
+    queryset = User.objects.all().prefetch_related('skills', 'owned_projects')
     serializer_class = UserSerializer
-    ordering_fields = ['id', 'created_at']
+    ordering_fields = ['surname', 'name', 'email', 'created_at']

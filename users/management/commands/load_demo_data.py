@@ -1,8 +1,15 @@
 from django.core.management.base import BaseCommand
-from projects.models import Project, ProjectSkill
-from users.models import User, UserSkill
 
-DEMO_PASSWORD = 'demo12345'
+from projects.models import Project, ProjectSkill
+from team_finder.constants import ProjectStatus
+from users.constants import (
+    DEMO_ALICE_EMAIL,
+    DEMO_BOB_EMAIL,
+    DEMO_PASSWORD,
+    DEMO_PROJECT_HABITS,
+    DEMO_PROJECT_TEAMFINDER,
+)
+from users.models import User, UserSkill
 
 
 class Command(BaseCommand):
@@ -17,7 +24,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         alice, _ = User.objects.get_or_create(
-            email='alice@example.com',
+            email=DEMO_ALICE_EMAIL,
             defaults={
                 'name': 'Алиса',
                 'surname': 'Иванова',
@@ -27,7 +34,7 @@ class Command(BaseCommand):
             },
         )
         bob, _ = User.objects.get_or_create(
-            email='bob@example.com',
+            email=DEMO_BOB_EMAIL,
             defaults={
                 'name': 'Борис',
                 'surname': 'Петров',
@@ -50,34 +57,32 @@ class Command(BaseCommand):
 
         if options['force']:
             Project.objects.filter(
-                name__in=['TeamFinder Clone', 'Мобильный трекер привычек'],
+                name__in=[DEMO_PROJECT_TEAMFINDER, DEMO_PROJECT_HABITS],
             ).delete()
 
-        if not Project.objects.filter(name='TeamFinder Clone').exists():
-            proj_skill_py, _ = ProjectSkill.objects.get_or_create(
-                                                    name='Python')
-            proj_skill_dj, _ = ProjectSkill.objects.get_or_create(
-                                                    name='Django')
+        if not Project.objects.filter(name=DEMO_PROJECT_TEAMFINDER).exists():
+            proj_skill_py, _ = ProjectSkill.objects.get_or_create(name='Python')
+            proj_skill_dj, _ = ProjectSkill.objects.get_or_create(name='Django')
 
             p1 = Project.objects.create(
-                name='TeamFinder Clone',
+                name=DEMO_PROJECT_TEAMFINDER,
                 description='Платформа для поиска команды на pet-проекты',
                 owner=alice,
                 github_url='https://github.com/alice/teamfinder',
-                status='open',
+                status=ProjectStatus.OPEN,
             )
             p1.participants.add(alice)
             p1.skills.add(proj_skill_py, proj_skill_dj)
 
             p2 = Project.objects.create(
-                name='Мобильный трекер привычек',
+                name=DEMO_PROJECT_HABITS,
                 description='Приложение для отслеживания ежедневных целей',
                 owner=bob,
-                status='open',
+                status=ProjectStatus.OPEN,
             )
             p2.participants.add(bob)
             bob.favorites.add(p1)
 
         self.stdout.write(self.style.SUCCESS('Демо-данные готовы'))
-        self.stdout.write(f'  alice@example.com / {DEMO_PASSWORD}')
-        self.stdout.write(f'  bob@example.com / {DEMO_PASSWORD}')
+        self.stdout.write(f'  {DEMO_ALICE_EMAIL} / {DEMO_PASSWORD}')
+        self.stdout.write(f'  {DEMO_BOB_EMAIL} / {DEMO_PASSWORD}')

@@ -1,6 +1,8 @@
 from django.test import TestCase
-from projects.models import Project
 from rest_framework.test import APIClient
+
+from projects.models import Project
+from team_finder.constants import ProjectStatus
 from users.models import User
 
 
@@ -16,7 +18,7 @@ class ApiV1Tests(TestCase):
         self.project = Project.objects.create(
             name='API Project',
             owner=self.user,
-            status='open',
+            status=ProjectStatus.OPEN,
         )
 
     def test_projects_list(self):

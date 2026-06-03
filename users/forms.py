@@ -1,5 +1,3 @@
-import re
-
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import (
@@ -8,9 +6,10 @@ from django.contrib.auth.forms import (
     UserCreationForm,
 )
 
-User = get_user_model()
+from team_finder.constants import PHONE_REGEX
+from team_finder.utils.mixins import GithubUrlValidationMixin
 
-PHONE_PATTERN = re.compile(r'^(8\d{10}|\+7\d{10})$')
+User = get_user_model()
 
 
 def normalize_phone(phone):
@@ -64,9 +63,6 @@ class LoginForm(AuthenticationForm):
         }),
     )
 
-    def confirm_login_allowed(self, user):
-        super().confirm_login_allowed(user)
-
     def get_invalid_login_error(self):
         return forms.ValidationError(
             'Неверный email или пароль',
@@ -74,26 +70,27 @@ class LoginForm(AuthenticationForm):
         )
 
 
-class ProfileEditForm(forms.ModelForm):
+class ProfileEditForm(GithubUrlValidationMixin, forms.ModelForm):
     class Meta:
         model = User
         fields = ('name', 'surname', 'avatar', 'about', 'phone', 'github_url')
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'surname': forms.TextInput(attrs={'class': 'form-control'}),
-            'about': forms.Textarea(attrs={'class': 'form-control',
-                                           'rows': 3}),
+            'about': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'github_url': forms.URLInput(attrs={'class': 'form-control'}),
-            'avatar': forms.FileInput(attrs={'id': 'id_avatar',
-                                             'class': 'hidden'}),
+            'avatar': forms.FileInput(attrs={
+                'id': 'id_avatar',
+                'class': 'hidden',
+            }),
         }
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone', '').strip()
         if not phone:
             return ''
-        if not PHONE_PATTERN.match(phone):
+        if not PHONE_REGEX.match(phone):
             raise forms.ValidationError(
                 'Номер должен быть в формате 8XXXXXXXXXX или +7XXXXXXXXXX',
             )
@@ -104,12 +101,6 @@ class ProfileEditForm(forms.ModelForm):
         if qs.exists():
             raise forms.ValidationError('Этот номер телефона уже используется')
         return phone
-
-    def clean_github_url(self):
-        url = self.cleaned_data.get('github_url')
-        if url and 'github.com' not in url:
-            raise forms.ValidationError('Ссылка должна вести на GitHub')
-        return url
 
 
 class UserPasswordChangeForm(PasswordChangeForm):

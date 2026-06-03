@@ -15,27 +15,27 @@ urlpatterns = [
     path('skills/', views.skills_autocomplete, name='skills_autocomplete'),
     path(
         '<int:pk>/complete/',
-        views.complete_project,
+        views.complete_project_view,
         name='complete',
     ),
     path(
         '<int:pk>/toggle-favorite/',
-        views.toggle_favorite,
+        views.toggle_favorite_view,
         name='toggle_favorite',
     ),
     path(
         '<int:pk>/toggle-participate/',
-        views.toggle_participate,
+        views.toggle_participate_view,
         name='toggle_participate',
     ),
     path(
         '<int:pk>/skills/add/',
-        views.add_project_skill,
+        views.add_project_skill_view,
         name='add_skill',
     ),
     path(
         '<int:pk>/skills/<int:skill_id>/remove/',
-        views.remove_project_skill,
+        views.remove_project_skill_view,
         name='remove_skill',
     ),
     path('<int:pk>/edit/', views.ProjectUpdateView.as_view(), name='edit'),

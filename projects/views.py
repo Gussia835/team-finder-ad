@@ -1,5 +1,3 @@
-import json
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
@@ -8,43 +6,53 @@ from django.urls import reverse_lazy
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
-from .forms import ProjectForm
-from .models import Project, ProjectSkill
-from team_finder.constants import MAX_SKILLS_AUTOCOMPLETE
+from team_finder.constants import QueryParam
+from team_finder.utils.http import parse_json_body
+from team_finder.utils.mixins import QueryPrefixContextMixin
+from team_finder.utils.skills import autocomplete_query
+from projects.constants import (
+    PROJECTS_PER_PAGE,
+    TEMPLATE_CREATE_PROJECT,
+    TEMPLATE_FAVORITE_PROJECTS,
+    TEMPLATE_PROJECT_DETAILS,
+    TEMPLATE_PROJECT_LIST,
+)
+from projects.forms import ProjectForm
+from projects.models import Project, ProjectSkill
+from projects.services import (
+    add_project_skill,
+    complete_project,
+    filter_projects_by_skill,
+    open_projects_queryset,
+    project_skills_autocomplete,
+    remove_project_skill,
+    toggle_favorite,
+    toggle_participation,
+)
 
 
-class ProjectListView(ListView):
+class ProjectListView(QueryPrefixContextMixin,
+                      ListView):
     model = Project
-    template_name = 'projects/project_list.html'
+    template_name = TEMPLATE_PROJECT_LIST
     context_object_name = 'projects'
-    paginate_by = 12
+    paginate_by = PROJECTS_PER_PAGE
 
     def get_queryset(self):
-        qs = (
-            Project.objects.filter(status='open')
-            .select_related('owner')
-            .prefetch_related('skills', 'participants')
-        )
-        skill = self.request.GET.get('skill')
-        if skill:
-            qs = qs.filter(skills__name__iexact=skill).distinct()
-        return qs
+        qs = open_projects_queryset()
+        skill = self.request.GET.get(QueryParam.SKILL)
+        return filter_projects_by_skill(qs, skill)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['all_skills'] = ProjectSkill.objects.all().order_by('name')
-        context['active_skill'] = self.request.GET.get('skill')
-        params = self.request.GET.copy()
-        params.pop('page', None)
-        context['query_prefix'] = params.urlencode()
-        if context['query_prefix']:
-            context['query_prefix'] += '&'
+        context['active_skill'] = self.request.GET.get(QueryParam.SKILL)
         return context
 
 
 class ProjectDetailView(DetailView):
     model = Project
-    template_name = 'projects/project-details.html'
+    template_name = TEMPLATE_PROJECT_DETAILS
     context_object_name = 'project'
 
     def get_queryset(self):
@@ -57,21 +65,25 @@ class ProjectDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
         project = self.object
-        context['is_owner'] = user.is_authenticated and project.owner_id == user.pk
+        context['is_owner'] = (
+            user.is_authenticated and project.owner_id == user.pk
+        )
         context['is_participant'] = (
             user.is_authenticated
             and project.participants.filter(pk=user.pk).exists()
         )
         if user.is_authenticated:
             context['is_favorite'] = user.favorites.filter(
-                pk=project.pk).exists()
+                pk=project.pk,
+            ).exists()
         return context
 
 
-class ProjectCreateView(LoginRequiredMixin, CreateView):
+class ProjectCreateView(LoginRequiredMixin,
+                        CreateView):
     model = Project
     form_class = ProjectForm
-    template_name = 'projects/create-project.html'
+    template_name = TEMPLATE_CREATE_PROJECT
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -89,10 +101,12 @@ class ProjectCreateView(LoginRequiredMixin, CreateView):
         return reverse_lazy('projects:detail', kwargs={'pk': self.object.pk})
 
 
-class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+class ProjectUpdateView(LoginRequiredMixin,
+                        UserPassesTestMixin,
+                        UpdateView):
     model = Project
     form_class = ProjectForm
-    template_name = 'projects/create-project.html'
+    template_name = TEMPLATE_CREATE_PROJECT
 
     def test_func(self):
         return self.get_object().owner_id == self.request.user.pk
@@ -106,11 +120,13 @@ class ProjectUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return reverse_lazy('projects:detail', kwargs={'pk': self.object.pk})
 
 
-class FavoriteProjectsView(LoginRequiredMixin, ListView):
+class FavoriteProjectsView(LoginRequiredMixin,
+                           QueryPrefixContextMixin,
+                           ListView):
     model = Project
-    template_name = 'projects/favorite_projects.html'
+    template_name = TEMPLATE_FAVORITE_PROJECTS
     context_object_name = 'projects'
-    paginate_by = 12
+    paginate_by = PROJECTS_PER_PAGE
 
     def get_queryset(self):
         return (
@@ -120,113 +136,47 @@ class FavoriteProjectsView(LoginRequiredMixin, ListView):
             .order_by('-created_at')
         )
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        params = self.request.GET.copy()
-        params.pop('page', None)
-        context['query_prefix'] = params.urlencode()
-        if context['query_prefix']:
-            context['query_prefix'] += '&'
-        return context
 
-
-def _json_body(request):
-    if request.body:
-        try:
-            return json.loads(request.body.decode('utf-8'))
-        except json.JSONDecodeError:
-            return {}
-    return {}
+@login_required
+@require_POST
+def toggle_favorite_view(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    return toggle_favorite(request.user, project)
 
 
 @login_required
 @require_POST
-def toggle_favorite(request, pk):
+def complete_project_view(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    user = request.user
-    favorited = False
-    if user.favorites.filter(pk=project.pk).exists():
-        user.favorites.remove(project)
-    else:
-        user.favorites.add(project)
-        favorited = True
-    return JsonResponse({'status': 'ok', 'favorited': favorited})
+    return complete_project(project, request.user)
 
 
 @login_required
 @require_POST
-def complete_project(request, pk):
+def toggle_participate_view(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if project.owner_id != request.user.pk or project.status != 'open':
-        return JsonResponse({'status': 'error'}, status=403)
-    project.complete()
-    return JsonResponse({'status': 'ok', 'project_status': 'closed'})
-
-
-@login_required
-@require_POST
-def toggle_participate(request, pk):
-    project = get_object_or_404(Project, pk=pk)
-    user = request.user
-    if project.participants.filter(pk=user.pk).exists():
-        project.participants.remove(user)
-        return JsonResponse({'status': 'ok', 'participant': False})
-    project.participants.add(user)
-    return JsonResponse({'status': 'ok', 'participant': True})
+    return toggle_participation(project, request.user)
 
 
 def skills_autocomplete(request):
-    q = request.GET.get('q', '')
-    skills = (
-        ProjectSkill.objects.filter(name__istartswith=q)
-        .order_by('name')[:MAX_SKILLS_AUTOCOMPLETE]
-    )
-    data = [{'id': s.id, 'name': s.name} for s in skills]
+    data = project_skills_autocomplete(autocomplete_query(request))
     return JsonResponse(data, safe=False)
 
 
 @login_required
 @require_POST
-def add_project_skill(request, pk):
+def add_project_skill_view(request, pk):
     project = get_object_or_404(Project, pk=pk)
-    if project.owner_id != request.user.pk:
-        return JsonResponse({'error': 'Forbidden'}, status=403)
-
-    body = _json_body(request)
-    skill_id = body.get('skill_id')
-    name = (body.get('name') or '').strip()
-
-    if skill_id:
-        skill = get_object_or_404(ProjectSkill, pk=skill_id)
-        created = False
-    elif name:
-        skill, created = ProjectSkill.objects.get_or_create(name=name)
-    else:
-        return JsonResponse({'error': 'skill_id or name required'}, status=400)
-
-    added = False
-    if not project.skills.filter(pk=skill.pk).exists():
-        project.skills.add(skill)
-        added = True
-
-    status_code = 201 if created else 200
-    return JsonResponse(
-        {
-            'skill_id': skill.id,
-            'name': skill.name,
-            'created': created,
-            'added': added,
-        },
-        status=status_code,
+    return add_project_skill(
+        project,
+        request.user,
+        parse_json_body(request),
     )
 
 
 @login_required
 @require_POST
-def remove_project_skill(request, pk, skill_id):
+def remove_project_skill_view(request, pk, skill_id):
     project = get_object_or_404(Project, pk=pk)
     skill = get_object_or_404(ProjectSkill, pk=skill_id)
-    if project.owner_id != request.user.pk:
-        return JsonResponse({'error': 'Forbidden'}, status=403)
-    project.skills.remove(skill)
-    return JsonResponse({'status': 'ok'})
+    return remove_project_skill(project, request.user, skill)

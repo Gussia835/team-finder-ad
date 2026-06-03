@@ -10,7 +10,7 @@ urlpatterns = [
     path('users/', include('users.urls'), name='users'),
     path('projects/', include('projects.urls'), name='projects'),
     path('',
-        RedirectView.as_view(url='/projects/list/', permanent=False)),
+         RedirectView.as_view(url='/projects/list/', permanent=False)),
 ]
 
 if settings.DEBUG:
