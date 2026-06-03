@@ -1,16 +1,18 @@
-from django.shortcuts import get_object_or_404
-from users.models import User, UserSkill
-from projects.models import Project, ProjectSkill
-from .serializers import (UserSerializer,
-                          ProjectSerializer,
-                          UserSkillSerializer,
-                          ProjectSkillSerializer,
-                          AddSkillSerializer)
-from rest_framework import viewsets, status, mixins
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from api.serializers import (
+    AddSkillSerializer,
+    ProjectSerializer,
+    ProjectSkillSerializer,
+    UserSerializer,
+    UserSkillSerializer,
+)
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
+from projects.models import Project, ProjectSkill
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from users.models import User, UserSkill
 
 
 class ProjectViewSet(viewsets.ModelViewSet):

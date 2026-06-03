@@ -1,7 +1,6 @@
 from django.test import TestCase
-from rest_framework.test import APIClient
-
 from projects.models import Project
+from rest_framework.test import APIClient
 from users.models import User
 
 

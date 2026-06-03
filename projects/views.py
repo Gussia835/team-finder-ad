@@ -62,7 +62,8 @@ class ProjectDetailView(DetailView):
             and project.participants.filter(pk=user.pk).exists()
         )
         if user.is_authenticated:
-            context['is_favorite'] = user.favorites.filter(pk=project.pk).exists()
+            context['is_favorite'] = user.favorites.filter(
+                pk=project.pk).exists()
         return context
 
 

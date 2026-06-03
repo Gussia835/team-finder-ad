@@ -2,7 +2,6 @@ import json
 
 from django.test import Client, TestCase
 from django.urls import reverse
-
 from projects.models import Project, ProjectSkill
 from users.models import User
 

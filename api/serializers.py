@@ -1,6 +1,6 @@
+from projects.models import Project, ProjectSkill
 from rest_framework import serializers
 from users.models import User, UserSkill
-from projects.models import Project, ProjectSkill
 
 
 class UserSkillSerializer(serializers.ModelSerializer):

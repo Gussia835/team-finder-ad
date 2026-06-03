@@ -1,11 +1,14 @@
-from django.db import models
-from django.contrib.auth.models import (BaseUserManager,
-                                        AbstractBaseUser,
-                                        PermissionsMixin)
-from PIL import Image, ImageDraw, ImageFont
-import random
-from django.core.files.base import ContentFile
 import io
+import random
+
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
+from django.core.files.base import ContentFile
+from django.db import models
+from PIL import Image, ImageDraw, ImageFont
 
 
 class CustomUserManager(BaseUserManager):

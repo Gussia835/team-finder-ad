@@ -81,10 +81,12 @@ class ProfileEditForm(forms.ModelForm):
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'surname': forms.TextInput(attrs={'class': 'form-control'}),
-            'about': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            'about': forms.Textarea(attrs={'class': 'form-control',
+                                           'rows': 3}),
             'phone': forms.TextInput(attrs={'class': 'form-control'}),
             'github_url': forms.URLInput(attrs={'class': 'form-control'}),
-            'avatar': forms.FileInput(attrs={'id': 'id_avatar', 'class': 'hidden'}),
+            'avatar': forms.FileInput(attrs={'id': 'id_avatar',
+                                             'class': 'hidden'}),
         }
 
     def clean_phone(self):

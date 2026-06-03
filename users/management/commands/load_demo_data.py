@@ -1,5 +1,4 @@
 from django.core.management.base import BaseCommand
-
 from projects.models import Project, ProjectSkill
 from users.models import User, UserSkill
 
@@ -55,8 +54,10 @@ class Command(BaseCommand):
             ).delete()
 
         if not Project.objects.filter(name='TeamFinder Clone').exists():
-            proj_skill_py, _ = ProjectSkill.objects.get_or_create(name='Python')
-            proj_skill_dj, _ = ProjectSkill.objects.get_or_create(name='Django')
+            proj_skill_py, _ = ProjectSkill.objects.get_or_create(
+                                                    name='Python')
+            proj_skill_dj, _ = ProjectSkill.objects.get_or_create(
+                                                    name='Django')
 
             p1 = Project.objects.create(
                 name='TeamFinder Clone',
