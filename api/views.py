@@ -12,8 +12,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
-print('api.views')
-
 
 class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.filter(

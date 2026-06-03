@@ -69,6 +69,8 @@ class User(AbstractBaseUser, PermissionsMixin):
                                null=True,
                                verbose_name='Аватарка пользователя')
     phone = models.CharField(max_length=12,
+                             blank=True,
+                             default='',
                              verbose_name='Номер телефона')
     github_url = models.URLField(blank=True,
                                  null=True,

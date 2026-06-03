@@ -26,7 +26,7 @@ class Project(models.Model):
                                    verbose_name='Описание проекта')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL,
                               on_delete=models.CASCADE,
-                              related_name='owner_projects',
+                              related_name='owned_projects',
                               verbose_name='Автор проекта')
     created_at = models.DateTimeField(auto_now_add=True,
                                       verbose_name='Дата создания')
@@ -40,7 +40,7 @@ class Project(models.Model):
                               verbose_name='Статус')
 
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL,
-                                          related_name='participant_projects',
+                                          related_name='participated_projects',
                                           blank=True,
                                           verbose_name='Участники')
     # 3 вариант
