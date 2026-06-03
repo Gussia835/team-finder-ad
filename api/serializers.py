@@ -1,6 +1,8 @@
-from projects.models import Project, ProjectSkill
 from rest_framework import serializers
+
 from users.models import User, UserSkill
+from projects.models import Project, ProjectSkill
+from team_finder.constants import PROJECT_SKILL_NAME_MAX_LENGTH
 
 
 class UserSkillSerializer(serializers.ModelSerializer):
@@ -61,7 +63,8 @@ class ProjectSerializer(serializers.ModelSerializer):
 
 class AddSkillSerializer(serializers.Serializer):
     skill_id = serializers.IntegerField(required=False)
-    name = serializers.CharField(required=False, max_length=124)
+    name = serializers.CharField(required=False,
+                                 max_length=PROJECT_SKILL_NAME_MAX_LENGTH)
 
     def validate(self, data):
         if not data.get('skill_id') and not data.get('name'):
