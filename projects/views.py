@@ -10,6 +10,7 @@ from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from .forms import ProjectForm
 from .models import Project, ProjectSkill
+from team_finder.constants import MAX_SKILLS_AUTOCOMPLETE
 
 
 class ProjectListView(ListView):
@@ -178,7 +179,7 @@ def skills_autocomplete(request):
     q = request.GET.get('q', '')
     skills = (
         ProjectSkill.objects.filter(name__istartswith=q)
-        .order_by('name')[:10]
+        .order_by('name')[:MAX_SKILLS_AUTOCOMPLETE]
     )
     data = [{'id': s.id, 'name': s.name} for s in skills]
     return JsonResponse(data, safe=False)

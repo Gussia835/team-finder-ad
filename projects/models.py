@@ -1,9 +1,17 @@
 from django.conf import settings
 from django.db import models
 
+from team_finder.constants import (
+    PROJECT_NAME_MAX_LENGTH,
+    PROJECT_STATUS_OPEN,
+    PROJECT_STATUS_CLOSED,
+    PROJECT_STATUSES,
+    PROJECT_SKILL_NAME_MAX_LENGTH,
+)
+
 
 class ProjectSkill(models.Model):
-    name = models.CharField(max_length=124,
+    name = models.CharField(max_length=PROJECT_SKILL_NAME_MAX_LENGTH,
                             unique=True,
                             verbose_name='Название')
 
@@ -17,10 +25,7 @@ class ProjectSkill(models.Model):
 
 
 class Project(models.Model):
-    AVAILABLE_STATUS = [('open', 'Open'),
-                        ('closed', 'Closed')]
-
-    name = models.CharField(max_length=200,
+    name = models.CharField(max_length=PROJECT_NAME_MAX_LENGTH,
                             verbose_name='Название проекта')
     description = models.TextField(blank=True,
                                    verbose_name='Описание проекта')
@@ -35,15 +40,14 @@ class Project(models.Model):
                                  verbose_name='Ссылка на Github')
 
     status = models.CharField(max_length=6,
-                              choices=AVAILABLE_STATUS,
-                              default='open',
+                              choices=PROJECT_STATUSES,
+                              default=PROJECT_STATUS_OPEN,
                               verbose_name='Статус')
 
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL,
                                           related_name='participated_projects',
                                           blank=True,
                                           verbose_name='Участники')
-    # 3 вариант
     skills = models.ManyToManyField(
         ProjectSkill,
         related_name='projects',
@@ -52,9 +56,7 @@ class Project(models.Model):
     )
 
     def complete(self):
-        '''смена статуса проекта на closed'''
-
-        self.status = 'closed'
+        self.status = PROJECT_STATUS_CLOSED
         self.save()
 
     class Meta:

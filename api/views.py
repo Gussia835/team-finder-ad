@@ -5,11 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.serializers import (
-    AddSkillSerializer,
     ProjectSerializer,
-    ProjectSkillSerializer,
     UserSerializer,
-    UserSkillSerializer,
 )
 from projects.models import Project, ProjectSkill
 from users.models import User, UserSkill
