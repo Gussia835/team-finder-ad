@@ -100,12 +100,23 @@ class User(AbstractBaseUser, PermissionsMixin):
             bg_color = random.choice(AVATAR_COLORS)
             img = Image.new('RGB', (AVATAR_SIZE, AVATAR_SIZE), color=bg_color)
             draw = ImageDraw.Draw(img)
-            initial = self.name[0].upper() if self.name else AVATAR_DEFAULT_INITIAL
+            initial = (self.name[0].upper()
+                       if self.name else AVATAR_DEFAULT_INITIAL)
 
             try:
                 font = ImageFont.truetype('arial.ttf', AVATAR_FONT_SIZE)
             except OSError:
-                font = ImageFont.load_default()
+                try:
+                    font = ImageFont.truetype('DejaVuSans.ttf',
+                                              AVATAR_FONT_SIZE)
+                except OSError:
+                    logger.warning(
+                        "Шрифты 'arial.ttf' и 'DejaVuSans.ttf' недоступны"
+                    )
+                    try:
+                        font = ImageFont.load_default(size=AVATAR_FONT_SIZE)
+                    except TypeError:
+                        font = ImageFont.load_default()
 
             bbox = draw.textbbox((0, 0), initial, font=font)
             text_w = bbox[2] - bbox[0]
