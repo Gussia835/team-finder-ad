@@ -83,10 +83,3 @@ python manage.py test
 ```
 
 CI: `.github/workflows/ci.yml`
-
-## Автор
-
-Укажите свои контакты, например:
-
-- GitHub: `https://github.com/your-username`
-- Email: `your.email@example.com`
