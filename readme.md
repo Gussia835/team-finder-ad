@@ -95,13 +95,26 @@ python manage.py runserver
 
 ## Тесты
 
+PostgreSQL должен быть запущен, а пароль в `.env` должен **совпадать** с тем, с которым был создан контейнер `db`. Иначе будет `password authentication failed`.
+
 ```bash
+docker compose up -d db
+python manage.py test
+```
+
+Если пароль в `.env` меняли после первого запуска, пересоздайте volume:
+
+```bash
+docker compose down -v
+docker compose up -d db
+python manage.py migrate
 python manage.py test
 ```
 
 CI: `.github/workflows/ci.yml`
 
 ## Автор
+
 Дмитрий Федотов
 📧 fdtvdmitriy@gmail.com
 🔗 [GitHub](https://github.com/Gussia835)

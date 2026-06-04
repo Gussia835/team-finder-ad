@@ -34,14 +34,14 @@ class ProjectViewSet(SkillManagementMixin, viewsets.ModelViewSet):
         user = request.user
         project = self.get_object()
 
-        if (favorited := user.favorites.filter(pk=project.pk).exists()):
+        if was_favorite := user.favorites.filter(pk=project.pk).exists():
             user.favorites.remove(project)
         else:
             user.favorites.add(project)
 
         return Response({
             JSON_KEY_STATUS: JSON_STATUS_OK,
-            JSON_KEY_FAVORITED: favorited,
+            JSON_KEY_FAVORITED: not was_favorite,
         })
 
 
