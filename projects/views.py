@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
@@ -56,10 +56,7 @@ class ProjectDetailView(DetailView):
     context_object_name = 'project'
 
     def get_queryset(self):
-        return Project.objects.select_related('owner').prefetch_related(
-            'participants',
-            'skills',
-        )
+        return open_projects_queryset(ignore_status=True)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -98,7 +95,8 @@ class ProjectCreateView(LoginRequiredMixin,
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('projects:detail', kwargs={'pk': self.object.pk})
+        return reverse('projects:detail',
+                       kwargs={'pk': self.object.pk})
 
 
 class ProjectUpdateView(LoginRequiredMixin,
@@ -117,7 +115,8 @@ class ProjectUpdateView(LoginRequiredMixin,
         return context
 
     def get_success_url(self):
-        return reverse_lazy('projects:detail', kwargs={'pk': self.object.pk})
+        return reverse('projects:detail',
+                       kwargs={'pk': self.object.pk})
 
 
 class FavoriteProjectsView(LoginRequiredMixin,

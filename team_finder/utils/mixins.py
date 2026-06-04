@@ -12,7 +12,6 @@ from api.serializers import (
 )
 from team_finder.constants import GITHUB_HOST, MAX_SKILLS_AUTOCOMPLETE
 from team_finder.utils.pagination import build_query_prefix
-from team_finder.utils.skills import skills_autocomplete_payload
 
 
 class GithubUrlValidationMixin:

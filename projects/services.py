@@ -13,12 +13,14 @@ from team_finder.utils.skills import assign_skill, skills_autocomplete_payload
 from projects.models import Project, ProjectSkill
 
 
-def open_projects_queryset():
-    return (
-        Project.objects.filter(status=ProjectStatus.OPEN)
-        .select_related('owner')
+def open_projects_queryset(ignore_status=False):
+    qs = (
+        Project.objects.select_related('owner')
         .prefetch_related('skills', 'participants')
     )
+    if not ignore_status:
+        qs = qs.filter(status=ProjectStatus.OPEN)
+    return qs
 
 
 def filter_projects_by_skill(queryset, skill_name):
@@ -32,14 +34,13 @@ def project_skills_autocomplete(query):
 
 
 def toggle_favorite(user, project):
-    favorited = False
-    if user.favorites.filter(pk=project.pk).exists():
+    if favorited := user.favorites.filter(pk=project.pk).exists():
         user.favorites.remove(project)
     else:
         user.favorites.add(project)
-        favorited = True
+
     return JsonResponse({JSON_KEY_STATUS: JSON_STATUS_OK,
-                         JSON_KEY_FAVORITED: favorited})
+                         JSON_KEY_FAVORITED: not favorited})
 
 
 def complete_project(project, user):
