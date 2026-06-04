@@ -2,7 +2,7 @@ from pathlib import Path
 
 from decouple import config
 
-from constants import DEFAULT_PAGE_SIZE
+from team_finder.constants import DEFAULT_PAGE_SIZE
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
