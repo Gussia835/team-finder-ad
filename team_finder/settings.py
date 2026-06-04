@@ -2,16 +2,20 @@ from pathlib import Path
 
 from decouple import config
 
+from constants import DEFAULT_PAGE_SIZE
+
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config("DJANGO_SECRET_KEY")
 
 DEBUG = config("DJANGO_DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]', 'testserver']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS',
+                       default='localhost,127.0.0.1,[::1],testserver',
+                       cast=lambda v: [s.strip() for s in v.split(',')])
 
 APPEND_SLASH = True
-# Application definition
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -100,12 +104,9 @@ if not DEBUG:
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+LANGUAGE_CODE = "ru-RU"
+TIME_ZONE = "Europe/Moscow"
 USE_I18N = True
-
 USE_TZ = True
 
 
@@ -126,9 +127,9 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = 'users.User'
-LOGIN_URL = '/users/login/'
-LOGIN_REDIRECT_URL = '/projects/list/'
-LOGOUT_REDIRECT_URL = '/projects/list/'
+LOGIN_URL = 'users:login'
+LOGIN_REDIRECT_URL = 'projects:list'
+LOGOUT_REDIRECT_URL = 'projects:list'
 
 
 REST_FRAMEWORK = {
@@ -148,7 +149,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': (
         'rest_framework.pagination.PageNumberPagination'
     ),
-    'PAGE_SIZE': 12,
+    'PAGE_SIZE': DEFAULT_PAGE_SIZE,
 
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
