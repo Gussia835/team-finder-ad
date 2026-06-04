@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from django.http import JsonResponse
 
 from team_finder.constants import (
@@ -40,7 +38,8 @@ def toggle_favorite(user, project):
     else:
         user.favorites.add(project)
         favorited = True
-    return JsonResponse({JSON_KEY_STATUS: JSON_STATUS_OK, JSON_KEY_FAVORITED: favorited})
+    return JsonResponse({JSON_KEY_STATUS: JSON_STATUS_OK,
+                         JSON_KEY_FAVORITED: favorited})
 
 
 def complete_project(project, user):

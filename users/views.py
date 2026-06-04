@@ -37,6 +37,8 @@ from users.services import (
     remove_user_skill,
     user_skills_autocomplete,
 )
+
+
 class UserListView(QueryPrefixContextMixin, ListView):
     model = User
     template_name = TEMPLATE_PARTICIPANTS
