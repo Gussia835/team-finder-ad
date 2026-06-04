@@ -34,13 +34,16 @@ def project_skills_autocomplete(query):
 
 
 def toggle_favorite(user, project):
-    if favorited := user.favorites.filter(pk=project.pk).exists():
+    was_favorited = user.favorites.filter(pk=project.pk).exists()
+    favorited = not was_favorited
+
+    if was_favorited:
         user.favorites.remove(project)
     else:
         user.favorites.add(project)
 
     return JsonResponse({JSON_KEY_STATUS: JSON_STATUS_OK,
-                         JSON_KEY_FAVORITED: not favorited})
+                         JSON_KEY_FAVORITED: favorited})
 
 
 def complete_project(project, user):
